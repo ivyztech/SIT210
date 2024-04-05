@@ -4,8 +4,8 @@
 const int SENSOR_ADDRESS = 0x23; // I2C address of the BH1750FVI sensor
 
 // WiFi credentials
-char ssid[] = "TP-Link_7722";
-char pass[] = "38118753";
+char ssid[] = "****";
+char pass[] = "****";
 
 // IFTTT Maker Webhooks URL and event name
 const char *DETECTED_SUNLIGHT_URL = "https://maker.ifttt.com/trigger/sunlight_detected/with/key/le0rzI13QTQtD0TTi6ErhS05xMaQqYWS4Gcop8hZAwD";
