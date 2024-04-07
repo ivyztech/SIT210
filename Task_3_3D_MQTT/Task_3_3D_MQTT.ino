@@ -1,8 +1,8 @@
 #include <ArduinoMqttClient.h>
 #include <WiFiNINA.h>
 
-const char* ssid = "TP-Link_7722";
-const char* password = "38118753";
+const char* ssid = "****";
+const char* password = "****";
 
 const int trigPin = 2;
 const int echoPin = 3;
