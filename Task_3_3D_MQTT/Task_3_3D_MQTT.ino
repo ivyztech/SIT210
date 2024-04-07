@@ -79,7 +79,6 @@ void publishMessage() {
 
   Serial.print("Distance: ");
   Serial.println(distance);
-  Serial.print("cm");
 
   if (distance < 10) { 
     publish("Pat signal recorded!");
