@@ -1,59 +1,52 @@
 #!/usr/bin/env python3
 
-import rospy
-from geometry_msgs.msg import Twist
-from turtlesim.msg import Pose
-import math
+# Import Dependencies
+import rospy 
+from geometry_msgs.msg import Twist 
+import time 
 
-class PerfectSquare:
-    def __init__(self):
-        rospy.init_node('perfect_square', anonymous=True)
-        self.velocity_publisher = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
-        self.pose_subscriber = rospy.Subscriber('/turtle1/pose', Pose, self.update_pose)
-        self.pose = Pose()
-        self.rate = rospy.Rate(10)
+def move_turtle_square(): 
+    rospy.init_node('turtlesim_square_node', anonymous=True)
+    
+    # Init publisher
+    velocity_publisher = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10) 
+    rospy.loginfo("Turtles are great at drawing squares!")
 
-    def update_pose(self, data):
-        """Callback function to update the current position."""
-        self.pose = data
+    ########## YOUR CODE GOES HERE ##########
+    # Set the execution frequency
+    rate = rospy.Rate(1) 
+    
+    while not rospy.is_shutdown():
+        # 1. MOVE FORWARD
+        move_cmd = Twist()
+        move_cmd.linear.x = 2.0  # Go forward
+        move_cmd.angular.z = 0.0
+        velocity_publisher.publish(move_cmd)
+        rospy.sleep(2.0) # Move for 2 seconds
 
-    def move_forward(self, distance):
-        x0, y0 = self.pose.x, self.pose.y
-        vel_msg = Twist()
-        vel_msg.linear.x = 2.0
-        
-        current_distance = 0
-        while current_distance < distance and not rospy.is_shutdown():
-            self.velocity_publisher.publish(vel_msg)
-            current_distance = math.sqrt((self.pose.x - x0)**2 + (self.pose.y - y0)**2)
-            self.rate.sleep()
-        
-        # Stop
-        self.velocity_publisher.publish(Twist())
+        # 2. STOP
+        stop_cmd = Twist()
+        velocity_publisher.publish(stop_cmd)
+        rospy.sleep(1.0) # Brief pause for stability
 
-    def rotate(self, relative_angle_degree):
-        vel_msg = Twist()
-        vel_msg.angular.z = 0.5 # Slow turn for precision
-        
-        target_angle = self.pose.theta + (relative_angle_degree * math.pi / 180)
-        
-        while abs(self.pose.theta - target_angle) > 0.01 and not rospy.is_shutdown():
-            self.velocity_publisher.publish(vel_msg)
-            self.rate.sleep()
-            
-        self.velocity_publisher.publish(Twist())
+        # 3. TURN 90 DEGREES
+        turn_cmd = Twist()
+        turn_cmd.linear.x = 0.0
+        # To turn 90 deg (pi/2) in 1 sec, set speed to 1.57 rad/s
+        turn_cmd.angular.z = 1.57 
+        velocity_publisher.publish(turn_cmd)
+        rospy.sleep(1.0) # Turn for 1 second
 
-    def run(self):
-        # while loop for infinite
-        while not rospy.is_shutdown():
-            self.move_forward(2.0)
-            rospy.sleep(0.5)
-            self.rotate(90)
-            rospy.sleep(0.5)
+        # 4. STOP AGAIN
+        velocity_publisher.publish(stop_cmd)
+        rospy.sleep(1.0)
 
-if __name__ == '__main__':
-    try:
-        ps = PerfectSquare()
-        ps.run()
-    except rospy.ROSInterruptException:
+        ###########################################
+
+if __name__ == '__main__': 
+
+    try: 
+        move_turtle_square() 
+    except rospy.ROSInterruptException: 
         pass
+        
