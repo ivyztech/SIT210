@@ -40,8 +40,8 @@ class Drive_Square:
     def move_robot(self):
         # 1. Defining calibrated "ideal" values
         # These values must be tweaked during  first few runs on the lab floor !!!!! 
-        one_meter_timeout = 2.8  # How long to drive to hit 1m
-        ninety_degree_timeout = 1.2 # How long to turn to hit 90 deg
+        one_meter_timeout = 3.5  # How long to drive to hit 1m
+        ninety_degree_timeout = 1.9 # How long to turn to hit 90 deg
         
         v_speed = 0.4      # Constant linear speed
         omega_speed = 1.0  # Constant angular speed
