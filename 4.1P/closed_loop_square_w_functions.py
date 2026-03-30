@@ -13,10 +13,10 @@ class ClosedLoopSquare:
         
         # State Variables
         self.current_ticks = 0
-        self.cmd_pub = rospy.Publisher('/akandb/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
+        self.cmd_pub = rospy.Publisher('/mybota002446/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
         
         # Subscribe to one encoder (right wheel)
-        rospy.Subscriber('/akandb/right_wheel_encoder_node/tick', WheelEncoderStamped, self.encoder_cb)
+        rospy.Subscriber('/mybota002446/right_wheel_encoder_node/tick', WheelEncoderStamped, self.encoder_cb)
         
         rospy.loginfo("Encoder node initialized. Waiting for ticks...")
         rospy.sleep(1) # Wait for subscriber to connect
