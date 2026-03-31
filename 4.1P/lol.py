@@ -51,14 +51,31 @@ class ClosedLoopRobot:
         
         msg = Twist2DStamped()
         msg.v = 0.0
-        msg.omega = abs(speed) * sign(angle) # Positive = CCW (Left), Negative = CW (Right)
+        msg.omega = abs(speed) * sign(angle)
+        
+        rospy.loginfo(f"Rotating... Target Ticks: {int(target_ticks)}")
         
         rate = rospy.Rate(50)
+        timeout_start = rospy.get_time() # Safety timeout
+
         while not rospy.is_shutdown():
-            if abs(self.current_ticks - start_ticks) >= target_ticks:
+            # Calculate how many ticks we've seen
+            displacement = abs(self.current_ticks - start_ticks)
+            
+            # DEBUG: Print this to see if numbers are actually moving!
+            # rospy.loginfo(f"Ticks Moved: {displacement}") 
+
+            if displacement >= target_ticks:
                 break
+            
+            # Safety: If 10 seconds pass and we haven't reached the goal
+            if rospy.get_time() - timeout_start > 10.0:
+                rospy.logwarn("Rotation Timed Out! Check if Right Wheel is spinning.")
+                break
+
             self.cmd_pub.publish(msg)
             rate.sleep()
+            
         self.stop_robot()
 
 if __name__ == '__main__':
