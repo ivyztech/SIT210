@@ -1,45 +1,74 @@
 #!/usr/bin/env python3
 import rospy
 from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped
+from numpy import sign
 
-class AutoCalibration:
+class RobustAutoCalibration:
     def __init__(self):
         rospy.init_node('auto_calibration')
-        self.robot_name = "mybota002446" # Your specific robot
+        self.robot_name = "mybota002446"
         
+        # --- NEW CALIBRATED CONSTANTS ---
+        # Calculation: 1350 / 0.80 = 1687.5
+        self.TICKS_PER_METER = 1688 
+        
+        # --- DRIFT COMPENSATION (TRIM) ---
+        # If drifting LEFT, use a small negative omega (right-hand steer)
+        # Try values between -0.05 and -0.2
+        self.TRIM_OMEGA = -0.1 
+
         self.current_ticks = 0
-        self.cmd_pub = rospy.Publisher(f'/{self.robot_name}/car_cmd_switch_node/cmd', Twist2DStamped, queue_size=1)
-        rospy.Subscriber(f'/{self.robot_name}/right_wheel_encoder_node/tick', WheelEncoderStamped, self.encoder_cb)
+        self.cmd_pub = rospy.Publisher(f'/{self.robot_name}/car_cmd_switch_node/cmd', 
+                                       Twist2DStamped, queue_size=1)
         
-        rospy.loginfo("Calibration node started. Waiting for sync...")
-        rospy.sleep(1)
+        # Using Right wheel as the master reference
+        rospy.Subscriber(f'/{self.robot_name}/right_wheel_encoder_node/tick', 
+                         WheelEncoderStamped, self.encoder_cb)
+        
+        rospy.loginfo("Node initialized. Ready for 1.0m test.")
+        rospy.sleep(1.5)
 
     def encoder_cb(self, msg):
         self.current_ticks = msg.data
 
-    def drive_test(self, target_ticks, speed):
+    def stop_robot(self):
+        stop_msg = Twist2DStamped()
+        stop_msg.v = 0.0
+        stop_msg.omega = 0.0
+        self.cmd_pub.publish(stop_msg)
+
+    def drive_distance(self, meters, speed):
         start_ticks = self.current_ticks
-        msg = Twist2DStamped()
-        msg.v = speed
-        msg.omega = 0.0
-
-        rospy.loginfo(f"Starting movement. Target: {target_ticks} ticks.")
+        target_ticks = abs(meters * self.TICKS_PER_METER)
         
-        while abs(self.current_ticks - start_ticks) < target_ticks and not rospy.is_shutdown():
+        msg = Twist2DStamped()
+        msg.v = speed * sign(meters)
+        msg.omega = self.TRIM_OMEGA # Applying the anti-drift correction
+        
+        rospy.loginfo(f"Executing {meters}m move. Target Ticks: {int(target_ticks)}")
+        
+        rate = rospy.Rate(50) # 50Hz control loop
+        while not rospy.is_shutdown():
+            # Check progress
+            traveled = abs(self.current_ticks - start_ticks)
+            
+            if traveled >= target_ticks:
+                break
+                
             self.cmd_pub.publish(msg)
-            rospy.sleep(0.01)
+            rate.sleep()
 
-        # Stop and report
-        msg.v = 0.0
-        self.cmd_pub.publish(msg)
-        actual_ticks = abs(self.current_ticks - start_ticks)
-        rospy.loginfo(f"STOPPED. Total Ticks Recorded: {actual_ticks}")
-        rospy.loginfo("Now, measure the distance on the floor with a ruler!")
+        self.stop_robot()
+        rospy.loginfo(f"Test Complete. Final Ticks: {abs(self.current_ticks - start_ticks)}")
 
 if __name__ == '__main__':
     try:
-        calibrator = AutoCalibration()
-        # Step 1: Drive what we THINK is 1 meter (1350 ticks)
-        calibrator.drive_test(target_ticks=1350, speed=0.4)
+        calibrator = RobustAutoCalibration()
+        
+        # Test 1: Straight 1.0 Meter
+        # If it still drifts left, decrease TRIM_OMEGA (e.g., -0.15)
+        # If it now drifts right, increase TRIM_OMEGA (e.g., -0.05)
+        calibrator.drive_distance(meters=1.0, speed=0.4)
+        
     except rospy.ROSInterruptException:
         pass
