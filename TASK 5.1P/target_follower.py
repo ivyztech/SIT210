@@ -10,8 +10,6 @@ class Target_Follower:
         
         #Initialize ROS node
         rospy.init_node('target_follower_node', anonymous=True)
-
-        # When shutdown signal is received, we run clean_shutdown function
         rospy.on_shutdown(self.clean_shutdown)
         
         ###### Init Pub/Subs. 
@@ -25,7 +23,7 @@ class Target_Follower:
     def tag_callback(self, msg):
         self.move_robot(msg.detections)
  
-    # Stop Robot before node has shut down. This ensures the robot keep moving with the latest velocity command
+    # Stop Robot before node has shut down
     def clean_shutdown(self):
         rospy.loginfo("System shutting down. Stopping robot...")
         self.stop_robot()
@@ -42,7 +40,7 @@ class Target_Follower:
 
         #### s222615433 program for 5.1P ####
 
-        # Prepare the velocity command message
+        # Preparing the velocity command message
         cmd_msg = Twist2DStamped()
         cmd_msg.header.stamp = rospy.Time.now()
         cmd_msg.v = 0.0 # Feature requires NO forward/backward movement
@@ -63,15 +61,10 @@ class Target_Follower:
 
         rospy.loginfo("Target acquired! x,y,z: %f %f %f", x, y, z)
 
-        # Proportional Gain for turning. 
-        # You will need to tune this value during your physical experiment.
+        # Proportional Gain for turning.
         k_p = 2.0 
 
         # Calculate angular velocity. 
-        # In typical camera frames, x is the horizontal offset (left/right).
-        # We multiply by -k_p because if x is positive (tag to the right), 
-        # the robot needs a negative angular velocity to turn right.
-        # *Note: If the robot turns away from the tag, change this to +k_p
         cmd_msg.omega = -k_p * x 
         
         self.cmd_vel_pub.publish(cmd_msg)
