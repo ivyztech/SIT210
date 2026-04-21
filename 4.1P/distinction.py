@@ -11,7 +11,7 @@ class SynchronizedSquare:
         # --- CALIBRATION ---
         self.TICKS_PER_METER = 950
         self.TICKS_PER_DEGREE = 0.40
-        self.STOP_THRESHOLD = 0.15  # Stop if obstacle is closer than 15cm
+        self.STOP_THRESHOLD = 0.30  # Stop if obstacle is closer than 30cm
 
         # State Variables
         self.right_ticks = 0
@@ -36,7 +36,7 @@ class SynchronizedSquare:
         self.left_ticks = msg.data
 
     def tof_cb(self, msg):
-        # Update the current distance from the ToF sensor
+        # Updating the current distance from the ToF sensor
         self.tof_distance = msg.range
 
     def stop_robot(self):
@@ -106,8 +106,8 @@ class SynchronizedSquare:
         for side in range(4):
             if rospy.is_shutdown(): break
             rospy.loginfo(f"--- SIDE {side + 1} ---")
-            self.move_straight(side_length, 1.2)
-            self.rotate_in_place(90, 6.5)
+            self.move_straight(side_length, 0.4)
+            self.rotate_in_place(90, 5.3)
 
         rospy.loginfo("Square completed successfully!")
 
