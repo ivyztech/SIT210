@@ -24,7 +24,7 @@ class Lane_Detector:
         rospy.init_node("my_lane_detector")
         self.cv_bridge = CvBridge()
 
-        # 2. Updated topic name to match your bag file exactly
+        # 2. Updated topic name to match bag file exactly
         self.image_sub = rospy.Subscriber('/akanb/camera_node/image/compressed', CompressedImage, self.image_callback, queue_size=1)
         
         rospy.loginfo("Lane Detector Node Initialized. Waiting for images...")
